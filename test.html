@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Room Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'smart-blue': '#0ea5e9',
+                        'smart-green': '#10b981',
+                        'smart-purple': '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 min-h-screen text-white">
+    <!-- Header -->
+    <header class="p-6 bg-black bg-opacity-30 backdrop-blur-lg">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-smart-blue">
+                <i class="fas fa-home mr-2"></i>Smart Room
+            </h1>
+            <div class="flex items-center space-x-4">
+                <div class="text-right">
+                    <div class="text-lg font-semibold" id="current-time"></div>
+                    <div class="text-sm text-gray-300" id="current-date"></div>
+                </div>
+                <div class="w-12 h-12 bg-smart-green rounded-full flex items-center justify-center">
+                    <i class="fas fa-wifi text-white"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-6">
+        <!-- Status Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-black bg-opacity-30 backdrop-blur-lg rounded-xl p-6 border border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400">Temperature</p>
+                        <p class="text-2xl font-bold" id="temperature">22°C</p>
+                    </div>
+                    <i class="fas fa-thermometer-half text-3xl text-orange-400"></i>
+                </div>
+            </div>
+            <div class="bg-black bg-opacity-30 backdrop-blur-lg rounded-xl p-6 border border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400">Humidity</p>
+                        <p class="text-2xl font-bold" id="humidity">45%</p>
+                    </div>
+                    <i class="fas fa-tint text-3xl text-blue-400"></i>
+                </div>
+            </div>
+            <div class="bg-black bg-opacity-30 backdrop-blur-lg rounded-xl p-6 border border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400">Air Quality</p>
+                        <p class="text-2xl font-bold" id="air-quality">Good</p>
+                    </div>
+                    <i class="fas fa-leaf text-3xl text-smart-green"></i>
+                </div>
+            </div>
+            <div class="bg-black bg-opacity-30 backdrop-blur-lg rounded-xl p-6 border border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400">Energy Usage</p>
+                        <p class="text-2xl font-bold" id="energy">1.2 kW</p>
+                    </div>
+                    <i class="fas fa-bolt text-3xl text-yellow-400"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Device Controls -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <!-- Lighting Control -->
+            <div class="bg-black bg-opacity-30 backdrop-blur-lg rounded-xl p-6 border border-gray-700">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-lightbulb mr-2 text-yellow-400"></i>Lighting
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span>Main Light</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer device-toggle" data-device="main-light" checked>
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-smart-blue"></div>
+                        </label>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Brightness</label>
+                        <input type="range" min="0" max="100" value="75" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider" data-device="brightness">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>0%</span>
+                            <span id="brightness-value">75%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Color Temperature</label>
+                        <input type="range" min="2700" max="6500" value="4000" class="w-full h-2 bg-gradient-to-r from-orange-300 to-blue-300 rounded-lg appearance-none cursor-pointer" data-device="color-temp">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>Warm</span>
+                            <span id="color-temp-value">4000K</span>
+                            <span>Cool</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Climate Control -->
+            <div class="bg-black bg-opacity-30 backdrop-blur-lg rounded-xl p-6 border border-gray-700">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-snowflake mr-2 text-blue-400"></i>Climate
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span>AC System</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer device-toggle" data-device="ac-system">
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-smart-blue"></div>
+                        </label>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Target Temperature</label>
+                        <div class="flex items-center space-x-4">
+                            <button class="bg-smart-blue hover:bg-blue-600 rounded-full w-10 h-10 flex items-center justify-center transition-colors" onclick="adjustTemp(-1)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span class="text-3xl font-bold" id="target-temp">22°C</span>
+                            <button class="bg-smart-blue hover:bg-blue-600 rounded-full w-10 h-10 flex items-center justify-center transition-colors" onclick="adjustTemp(1)">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="flex-1 py-2 px-4 rounded-lg bg-gray-700 hover:bg-smart-blue transition-colors mode-btn" data-mode="cool">
+                            <i class="fas fa-snowflake mr-1"></i>Cool
+                        </button>
+                        <button class="flex-1 py-2 px-4 rounded-lg bg-gray-700 hover:bg-smart-blue transition-colors mode-btn" data-mode="heat">
+                            <i class="fas fa-fire mr-1"></i>Heat
+                        </button>
+                        <button class="flex-1 py-2 px-4 rounded-lg bg-smart-blue mode-btn active" data-mode="auto">
+                            <i class="fas fa-sync mr-1"></i>Auto
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security System -->
+            <div class="bg-black bg-opacity-30 backdrop-blur-lg rounded-xl p-6 border border-gray-700">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-shield-alt mr-2 text-smart-green"></i>Security
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span>Alarm System</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer device-toggle" data-device="alarm-system" checked>
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-smart-green"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span>Door Lock</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer device-toggle" data-device="door-lock" checked>
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-smart-green"></div>
+                        </label>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-gray-400">Camera Status</span>
+                            <div class="flex items-center">
+                                <div class="w-2 h-2 bg-smart-green rounded-full mr-2 animate-pulse"></div>
+                                <span class="text-sm text-smart-green">Recording</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500">Last motion: 2 minutes ago</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Entertainment System -->
+            <div class="bg-black bg-opacity-30 backdrop-blur-lg rounded-xl p-6 border border-gray-700">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-tv mr-2 text-smart-purple"></i>Entertainment
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span>TV</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer device-toggle" data-device="tv">
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-smart-purple"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span>Sound System</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer device-toggle" data-device="sound-system" checked>
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-smart-purple"></div>
+                        </label>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Volume</label>
+                        <input type="range" min="0" max="100" value="35" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider" data-device="volume">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>0</span>
+                            <span id="volume-value">35</span>
+                            <span>100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Smart Appliances -->
+            <div class="bg-black bg-opacity-30 backdrop-blur-lg rounded-xl p-6 border border-gray-700">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-microchip mr-2 text-indigo-400"></i>Appliances
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span>Coffee Maker</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer device-toggle" data-device="coffee-maker">
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-400"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span>Air Purifier</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer device-toggle" data-device="air-purifier" checked>
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-400"></div>
+                        </label>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-3">
+                        <div class="text-sm text-gray-400 mb-1">Washing Machine</div>
+                        <div class="text-sm text-indigo-400">Cycle complete - 5 min ago</div>
+                        <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                            <div class="bg-indigo-400 h-2 rounded-full w-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Energy Management -->
+            <div class="bg-black bg-opacity-30 backdrop-blur-lg rounded-xl p-6 border border-gray-700">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-chart-line mr-2 text-yellow-400"></i>Energy
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span>Eco Mode</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer device-toggle" data-device="eco-mode" checked>
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-400"></div>
+                        </label>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-3">
+                        <div class="text-sm text-gray-400 mb-2">Today's Consumption</div>
+                        <div class="text-2xl font-bold text-yellow-400" id="daily-consumption">12.5 kWh</div>
+                        <div class="text-xs text-gray-500">↓ 15% from yesterday</div>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-3">
+                        <div class="text-sm text-gray-400 mb-2">Monthly Cost</div>
+                        <div class="text-xl font-bold text-smart-green">$89.40</div>
+                        <div class="text-xs text-gray-500">Budget: $120.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="mt-8 bg-black bg-opacity-30 backdrop-blur-lg rounded-xl p-6 border border-gray-700">
+            <h3 class="text-xl font-bold mb-4 flex items-center">
+                <i class="fas fa-history mr-2 text-gray-400"></i>Recent Activity
+            </h3>
+            <div class="space-y-3" id="activity-log">
+                <!-- Activity items will be populated by JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Device state management
+        let deviceStates = {
+            'main-light': true,
+            'ac-system': false,
+            'alarm-system': true,
+            'door-lock': true,
+            'tv': false,
+            'sound-system': true,
+            'coffee-maker': false,
+            'air-purifier': true,
+            'eco-mode': true
+        };
+
+        let targetTemperature = 22;
+        let climateMode = 'auto';
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            initializeDeviceControls();
+            startRealTimeUpdates();
+            initializeActivityLog();
+        });
+
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString();
+            document.getElementById('current-date').textContent = now.toLocaleDateString();
+            setTimeout(updateTime, 1000);
+        }
+
+        // Initialize device controls
+        function initializeDeviceControls() {
+            // Device toggles
+            document.querySelectorAll('.device-toggle').forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const device = this.dataset.device;
+                    deviceStates[device] = this.checked;
+                    logActivity(`${formatDeviceName(device)} ${this.checked ? 'turned on' : 'turned off'}`);
+                    updateEnergyConsumption();
+                });
+            });
+
+            // Sliders
+            document.querySelectorAll('.slider').forEach(slider => {
+                slider.addEventListener('input', function() {
+                    const device = this.dataset.device;
+                    const value = this.value;
+                    
+                    if (device === 'brightness') {
+                        document.getElementById('brightness-value').textContent = value + '%';
+                    } else if (device === 'volume') {
+                        document.getElementById('volume-value').textContent = value;
+                    } else if (device === 'color-temp') {
+                        document.getElementById('color-temp-value').textContent = value + 'K';
+                    }
+                    
+                    logActivity(`${formatDeviceName(device)} adjusted to ${value}${device === 'brightness' ? '%' : device === 'color-temp' ? 'K' : ''}`);
+                });
+            });
+
+            // Climate mode buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.mode-btn').forEach(b => {
+                        b.classList.remove('bg-smart-blue', 'active');
+                        b.classList.add('bg-gray-700');
+                    });
+                    this.classList.add('bg-smart-blue', 'active');
+                    this.classList.remove('bg-gray-700');
+                    climateMode = this.dataset.mode;
+                    logActivity(`Climate mode set to ${climateMode}`);
+                });
+            });
+        }
+
+        // Adjust temperature
+        function adjustTemp(delta) {
+            targetTemperature += delta;
+            targetTemperature = Math.max(15, Math.min(30, targetTemperature));
+            document.getElementById('target-temp').textContent = targetTemperature + '°C';
+            logActivity(`Target temperature set to ${targetTemperature}°C`);
+        }
+
+        // Format device names for display
+        function formatDeviceName(device) {
+            return device.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        // Log activity
+        function logActivity(message) {
+            const activityLog = document.getElementById('activity-log');
+            const time = new Date().toLocaleTimeString();
+            
+            const activityItem = document.createElement('div');
+            activityItem.className = 'flex items-center justify-between py-2 px-3 bg-gray-800 rounded-lg';
+            activityItem.innerHTML = `
+                <div class="flex items-center">
+                    <div class="w-2 h-2 bg-smart-blue rounded-full mr-3"></div>
+                    <span>${message}</span>
+                </div>
+                <span class="text-sm text-gray-400">${time}</span>
+            `;
+            
+            activityLog.insertBefore(activityItem, activityLog.firstChild);
+            
+            // Keep only the last 10 activities
+            while (activityLog.children.length > 10) {
+                activityLog.removeChild(activityLog.lastChild);
+            }
+        }
+
+        // Initialize activity log with some sample data
+        function initializeActivityLog() {
+            const sampleActivities = [
+                'System initialized successfully',
+                'Air purifier filter status: Good',
+                'Security system armed',
+                'Energy saving mode activated'
+            ];
+            
+            sampleActivities.forEach(activity => {
+                setTimeout(() => logActivity(activity), Math.random() * 2000);
+            });
+        }
+
+        // Real-time updates for sensor data
+        function startRealTimeUpdates() {
+            setInterval(() => {
+                // Simulate sensor readings
+                updateTemperature();
+                updateHumidity();
+                updateAirQuality();
+                updateEnergyConsumption();
+            }, 5000);
+        }
+
+        function updateTemperature() {
+            const baseTemp = 22;
+            const variation = (Math.random() - 0.5) * 2;
+            const newTemp = Math.round((baseTemp + variation) * 10) / 10;
+            document.getElementById('temperature').textContent = newTemp + '°C';
+        }
+
+        function updateHumidity() {
+            const baseHumidity = 45;
+            const variation = (Math.random() - 0.5) * 10;
+            const newHumidity = Math.max(30, Math.min(70, Math.round(baseHumidity + variation)));
+            document.getElementById('humidity').textContent = newHumidity + '%';
+        }
+
+        function updateAirQuality() {
+            const qualities = ['Excellent', 'Good', 'Fair', 'Poor'];
+            const weights = [0.4, 0.4, 0.15, 0.05]; // Weighted random selection
+            let random = Math.random();
+            let quality = qualities[0];
+            
+            for (let i = 0; i < qualities.length; i++) {
+                if (random < weights[i]) {
+                    quality = qualities[i];
+                    break;
+                }
+                random -= weights[i];
+            }
+            
+            document.getElementById('air-quality').textContent = quality;
+        }
+
+        function updateEnergyConsumption() {
+            // Calculate energy based on active devices
+            let consumption = 0.2; // Base consumption
+            
+            Object.entries(deviceStates).forEach(([device, isOn]) => {
+                if (isOn) {
+                    switch(device) {
+                        case 'main-light': consumption += 0.1; break;
+                        case 'ac-system': consumption += 1.5; break;
+                        case 'tv': consumption += 0.3; break;
+                        case 'sound-system': consumption += 0.2; break;
+                        case 'coffee-maker': consumption += 0.8; break;
+                        case 'air-purifier': consumption += 0.3; break;
+                        default: consumption += 0.1;
+                    }
+                }
+            });
+            
+            // Apply eco mode reduction
+            if (deviceStates['eco-mode']) {
+                consumption *= 0.85;
+            }
+            
+            document.getElementById('energy').textContent = consumption.toFixed(1) + ' kW';
+            
+            // Update daily consumption (simulate accumulation)
+            const currentDaily = parseFloat(document.getElementById('daily-consumption').textContent.replace(' kWh', ''));
+            const newDaily = currentDaily + (consumption * 5 / 3600); // 5 second intervals
+            document.getElementById('daily-consumption').textContent = newDaily.toFixed(1) + ' kWh';
+        }
+
+        // Add some interactive animations
+        document.querySelectorAll('.device-toggle').forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const card = this.closest('.bg-black');
+                card.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    card.style.transform = 'scale(1)';
+                }, 150);
+            });
+        });
+    </script>
+</body>
+</html>

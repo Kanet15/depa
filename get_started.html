@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Started | เริ่มต้นใช้งาน</title>
+
+    <!-- CSS Styles are now inside the HTML file -->
+    <style>
+        /* Basic Reset and Font Styling */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #0a3ad8;
+        }
+
+        /* Hero Section with Background Image */
+        .hero-section {
+            height: 100vh; /* Full viewport height */
+            width: 100%;
+            
+            /* Background Image Settings */
+            /* IMPORTANT: Make sure you have an image named 'background.jpg' in the same folder */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('background.jpg');
+            background-size: cover; /* Cover the entire area */
+            background-position: center; /* Center the image */
+            background-repeat: no-repeat;
+
+            /* Centering content using Flexbox */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            
+            color: white; /* Text color for content inside */
+        }
+
+        .hero-content {
+            padding: 2rem;
+            max-width: 600px;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* The Call-to-Action Button */
+        .cta-button {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            background-color: #007BFF; /* A vibrant blue */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        /* Hover and Active states for the button */
+        .cta-button:hover {
+            background-color: #0056b3; /* A darker blue on hover */
+            transform: translateY(-3px); /* Slightly raise the button */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .cta-button:active {
+            transform: translateY(0); /* Return to original position on click */
+        }
+
+        /* Responsive design for smaller screens */
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-content p {
+                font-size: 1rem;
+            }
+
+            .cta-button {
+                padding: 12px 30px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="hero-section">
+        <div class="hero-content">
+            <h1>Welcome to Our Platform</h1>
+            <p>Your journey to success starts here. Click the button below to begin.</p>
+            <button id="startButton" class="cta-button">เริ่มต้นใช้งาน</button>
+        </div>
+    </main>
+
+    <!-- JavaScript is now inside the HTML file -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Find the button by its ID
+            const startButton = document.getElementById('startButton');
+
+            // Add a click event listener to the button
+            startButton.addEventListener('click', function() {
+                
+                window.location.href = 'login.html'; 
+            });
+
+        });
+    </script>
+</body>
+</html>

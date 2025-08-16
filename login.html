@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>เข้าสู่ระบบ - Smart Room</title>
+  <style>
+    body { font-family: sans-serif; background: #f1f5f9; margin: 0; }
+    .login-box {
+      max-width: 400px; margin: 80px auto; background: white; padding: 20px;
+      border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .login-box h2 { margin-bottom: 20px; }
+    .field { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; }
+    input {
+      width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;
+    }
+    button.primary {
+      background: #2563eb; color: white; border: none; padding: 10px 15px;
+      border-radius: 4px; cursor: pointer; width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>เข้าสู่ระบบ</h2>
+    <div class="field">
+      <label>ชื่อผู้ดูแล</label>
+      <input id="adminName" type="text" placeholder="เช่น สิริวิมล ค.">
+    </div>
+    <div class="field">
+      <label>เบอร์โทร</label>
+      <input id="adminPhone" type="text" placeholder="เช่น 0812345678">
+    </div>
+    <div class="field">
+      <label>LINE ID</label>
+      <input id="adminLine" type="text" placeholder="LINE ID">
+    </div>
+    <button class="primary" id="loginBtn">เข้าสู่ระบบ</button>
+  </div>
+
+  <script>
+    if(localStorage.getItem('adminName')){
+      window.location.href = 'main.html';
+    }
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      const name = document.getElementById('adminName').value.trim();
+      const phone = document.getElementById('adminPhone').value.trim();
+      const line = document.getElementById('adminLine').value.trim();
+
+      if(!name || !phone || !line){
+        alert("กรุณากรอกข้อมูลให้ครบ");
+        return;
+      }
+
+      localStorage.setItem('adminName', name);
+      localStorage.setItem('adminPhone', phone);
+      localStorage.setItem('adminLine', line);
+
+      window.location.href = 'main.html';
+    });
+  </script>
+</body>
+</html>
