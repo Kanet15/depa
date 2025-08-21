@@ -64,10 +64,10 @@ body {
 }
 
 .login-panel {
-  background: var(--card);
-  padding: 20px;
-  border-radius: 10px;
-  margin-bottom: 20px;
+  flex: 1;               
+  background: #ffffff;   
+  padding: 40px;         
+  border-radius: 0;      
 }
 
 .field {
@@ -181,4 +181,18 @@ login-box {
   background: var(--card);
   padding: 20px;
   border-radius: 8px;
+}
+
+/* พื้นที่เนื้อหา (main panel) */
+.main-panel {
+  flex: 1;
+  padding: 20px 30px;   /* เว้นรอบๆ */
+  margin-left: 10px;    /* ดันออกจาก sidebar อีกนิด */
+  background: #f9fafb;  /* พื้นหลังจางๆ */
+  border-radius: 12px;  /* มุมโค้งดูนุ่มนวล */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.main-panel h1 {
+  margin-bottom: 15px;
 }

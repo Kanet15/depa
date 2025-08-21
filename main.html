@@ -5,52 +5,49 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Smart Room </title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
   <div class="wrap">
+    <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="logo">Smart room main.htmlเองจ้า</div>
+      <div class="logo">Smart Room</div>
       <nav class="nav" id="mainNav">
         <a href="/main.html" class="active">หน้าหลัก</a>
-        <a href="/room.html" >เลือกห้อง</a>
-        <a href="/report.html" >รายงาน</a>
+        <a href="/room.html">เลือกห้อง</a>
+        <a href="/report.html">รายงาน</a>
       </nav>
 
-      <div style="margin-top:20px;font-size:13px;color:rgba(255,255,255,0.9)">
+      <div class="admin-info">
         <div>ชื่อผู้ดูแล</div>
-        <div style="margin-top:6px;font-weight:700" id="adminNameDisplay">-</div>
-        <div class="small" style="margin-top:8px">เบอร์: <span id="adminPhoneDisplay">-</span></div>
+        <div id="adminNameDisplay" class="admin-name">-</div>
+        <div class="small">เบอร์: <span id="adminPhoneDisplay">-</span></div>
         <div class="small">LINE: <span id="adminLineDisplay">-</span></div>
       </div>
 
-      <div style="margin-top:20px">
-        <button id="logoutBtn" class="primary" style="background:#ef4444;">ออกจากระบบ</button>
+      <div class="logout-wrap">
+        <button id="logoutBtn" class="primary danger">ออกจากระบบ</button>
       </div>
     </aside>
 
+    <!-- Main content -->
     <main class="content">
       <section id="page-home" class="page">
         <div class="content">
           <h2>รายการ ห้องเรียน</h2>
-          <div class="room-card">
-            <div class="camera-box">
-              <video id="lriunCam" autoplay playsinline></video>
-            </div>
-            <div class="room-info">
-              <div>ห้องคอมพิวเตอร์ 1</div>
-              <div>หมดเวลา 15.45</div>
-            </div>
-            <div class="room-actions">
-              <button class="btn-empty">ไม่มีผู้ใช้งาน</button>
-              <button class="btn-report">รายงาน</button>
-            </div>
+          <div id="roomsContainer"></div>
         </div>
       </section>
-
-      
     </main>
-  </div>
 
-  <script src="script.js"></script>
+    <!-- 1. โหลดไลบรารีของ Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <!-- 2. เรียกใช้ไฟล์ตั้งค่าของเรา (สะอาดกว่าเยอะ!) -->
+    <script src="firebase-init.js"></script>
+
+    <!-- 3. เรียกใช้ script หลักของเรา -->
+    <script src="script.js"></script>
 </body>
 </html>

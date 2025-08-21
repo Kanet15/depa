@@ -5,45 +5,75 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Smart Room</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
   <div class="wrap">
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="logo">Smart room main.htmlเองจ้า</div>
+      <div class="logo">Smart Room</div>
       <nav class="nav" id="mainNav">
         <a href="/main.html">หน้าหลัก</a>
         <a href="/room.html" class="active">เลือกห้อง</a>
-        <a href="/report.html" data-page="reports">รายงาน</a>
+        <a href="/report.html">รายงาน</a>
       </nav>
 
-      <div style="margin-top:20px;font-size:13px;color:rgba(255,255,255,0.9)">
+      <div class="admin-info">
         <div>ชื่อผู้ดูแล</div>
-        <div style="margin-top:6px;font-weight:700" id="adminNameDisplay">-</div>
-        <div class="small" style="margin-top:8px">เบอร์: <span id="adminPhoneDisplay">-</span></div>
+        <div id="adminNameDisplay" class="admin-name">-</div>
+        <div class="small">เบอร์: <span id="adminPhoneDisplay">-</span></div>
         <div class="small">LINE: <span id="adminLineDisplay">-</span></div>
       </div>
 
-      <div style="margin-top:20px">
-        <button id="logoutBtn" class="primary" style="background:#ef4444;">ออกจากระบบ</button>
+      <div class="logout-wrap">
+        <button id="logoutBtn" class="primary danger">ออกจากระบบ</button>
       </div>
     </aside>
-    <div class="login-panel">
-  <div style="font-weight:700;font-size:16px;margin-bottom:6px">เพิ่ม/แก้ไข ห้อง</div>
-  <div class="field">
-    <label>ชื่อห้อง</label>
-    <input id="roomName" type="text" placeholder="ตัวอย่าง: คอม 1">
+
+    <!-- Main content -->
+    <div class="main-panel">
+      <h1>เพิ่มการตั้งค่าห้อง</h1>
+      <div class="field">
+        <label>ชื่อห้อง</label>
+        <input id="roomName" type="text" placeholder="ตัวอย่าง: คอม 1">
+      </div>
+      <div class="field">
+        <label>ชื่อผู้ดูแล</label>
+        <input id="roomAdmin" type="text" placeholder="ตัวอย่าง: ครูสมชาย">
+      </div>
+      <div class="field">
+        <label>เวลาหมดเวลา (HH:MM)</label>
+        <input id="roomExpire" type="time">
+      </div>
+      <div class="field">
+      <div class="field">
+        <label>เลือกกล้อง</label>
+        <select id="roomCamera"></select>
+        </div>
+      <button class="primary" id="saveRoom">บันทึก</button>
+    </div>
+
+    <!-- กล่องแสดง QR -->
+    <div id="qrBox" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+      background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.3); text-align:center; z-index:999;">
+      <button id="closeQR" style="float:right; border:none; background:red; color:white; border-radius:50%; width:30px; height:30px; cursor:pointer;">x</button>
+      <h3>สแกน QR เพื่อยืนยัน</h3>
+      <img id="qrImage" src="/image/qrcode_messageAPI.png" alt="QR Code" style="max-width:200px; display:block; margin:10px auto;">
+      <p id="timerText">QR จะหายไปใน 60 วินาที</p>
+    </div>
   </div>
-  <div class="field">
-    <label>ตารางเวลาการใช้งาน</label>
-    <input id="roomSchedule" type="text" placeholder="จ,อ,พ - 08:00-12:00 / 13:00-15:45">
-  </div>
-  <button class="primary" id="saveRoom">บันทึก</button>
-</div>
+
+  <!-- 1. โหลดไลบรารีของ Firebase ก่อน -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
 
+  
+  <!-- ========================================================== -->
 
-
+    <!-- 2. เรียกใช้ไฟล์ตั้งค่าของเรา (สะอาดกว่าเยอะ!) -->
+    <script src="firebase-init.js"></script>
+  <!-- 3. เรียกใช้ script.js เป็นลำดับสุดท้าย -->
   <script src="script.js"></script>
 </body>
 </html>

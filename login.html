@@ -15,10 +15,36 @@
     label { display: block; margin-bottom: 5px; }
     input {
       width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;
+      box-sizing: border-box;
     }
+    
+    input.invalid {
+      border-color: #ef4444;
+      background-color: #fef2f2;
+    }
+    
+    .error-message {
+      color: #ef4444;
+      font-size: 12px;
+      margin-top: 5px;
+      display: block;
+    }
+    
+    .success-message {
+      color: #10b981;
+      font-size: 12px;
+      margin-top: 5px;
+      display: block;
+    }
+    
     button.primary {
       background: #2563eb; color: white; border: none; padding: 10px 15px;
       border-radius: 4px; cursor: pointer; width: 100%;
+    }
+    
+    button.primary:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
     }
   </style>
 </head>
@@ -31,7 +57,8 @@
     </div>
     <div class="field">
       <label>เบอร์โทร</label>
-      <input id="adminPhone" type="text" placeholder="เช่น 0812345678">
+      <input id="adminPhone" type="text" placeholder="เช่น 0812345678" maxlength="10">
+      <span id="phoneMessage"></span>
     </div>
     <div class="field">
       <label>LINE ID</label>
@@ -44,6 +71,81 @@
     if(localStorage.getItem('adminName')){
       window.location.href = 'main.html';
     }
+
+    const phoneInput = document.getElementById('adminPhone');
+    const phoneMessage = document.getElementById('phoneMessage');
+    const loginBtn = document.getElementById('loginBtn');
+
+    // Function สำหรับเช็คว่ามีเฉพาะตัวเลข
+    function isOnlyNumbers(value) {
+      return /^[0-9]*$/.test(value);
+    }
+
+    // Function สำหรับตรวจสอบเบอร์โทร
+    function validatePhoneNumber(phone) {
+      if (phone === '') {
+        return { isValid: false, message: '' };
+      }
+      
+      // เช็คว่ามีเฉพาะตัวเลข
+      if (!isOnlyNumbers(phone)) {
+        return { isValid: false, message: 'กรุณากรอกเฉพาะตัวเลขเท่านั้น' };
+      }
+      
+      // เช็คว่าขึ้นต้นด้วย 0
+      if (!phone.startsWith('0')) {
+        return { isValid: false, message: 'เบอร์โทรต้องขึ้นต้นด้วย 0' };
+      }
+      
+      // เช็คความยาว
+      if (phone.length < 9) {
+        return { isValid: false, message: `เบอร์โทรสั้นเกินไป (${phone.length}/10 หลัก)`};
+      }
+      
+      if (phone.length === 9) {
+        return { isValid: true, message: 'เบอร์โทรถูกต้อง (เบอร์บ้าน)' };
+      }
+      
+      if (phone.length === 10) {
+        return { isValid: true, message: 'เบอร์โทรถูกต้อง' };
+      }
+      
+      return { isValid: false, message: 'เบอร์โทรไม่ถูกต้อง' };
+    }
+
+    // Function สำหรับอัพเดท UI
+    function updatePhoneUI(validation, value) {
+      if (value === '') {
+        phoneInput.className = '';
+        phoneMessage.textContent = '';
+        phoneMessage.className = '';
+      } else if (validation.isValid) {
+        phoneInput.className = 'valid';
+        phoneMessage.textContent = validation.message;
+        phoneMessage.className = 'success-message';
+      } else {
+        phoneInput.className = 'invalid';
+        phoneMessage.textContent = validation.message;
+        phoneMessage.className = 'error-message';
+      }
+    }
+
+    // Event listener สำหรับการพิมพ์ในช่องเบอร์โทร
+    phoneInput.addEventListener('input', function(e) {
+      const value = e.target.value;
+      const validation = validatePhoneNumber(value);
+      updatePhoneUI(validation, value);
+    });
+
+    // ป้องกันการพิมพ์ตัวอักษรในช่องเบอร์โทร
+    phoneInput.addEventListener('keypress', function(e) {
+      const char = String.fromCharCode(e.which);
+      if (!/[0-9]/.test(char)) {
+        e.preventDefault();
+      }
+    });
+
+    // Original login functionality with phone validation
     document.getElementById('loginBtn').addEventListener('click', () => {
       const name = document.getElementById('adminName').value.trim();
       const phone = document.getElementById('adminPhone').value.trim();
@@ -51,6 +153,13 @@
 
       if(!name || !phone || !line){
         alert("กรุณากรอกข้อมูลให้ครบ");
+        return;
+      }
+
+      // ตรวจสอบเบอร์โทรก่อนส่ง
+      const phoneValidation = validatePhoneNumber(phone);
+      if (!phoneValidation.isValid) {
+        alert("กรุณากรอกเบอร์โทรให้ถูกต้อง");
         return;
       }
 
