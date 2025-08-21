@@ -7,14 +7,20 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // 1.1 ตรวจสอบการล็อกอิน
   if (!localStorage.getItem('adminName')) {
-    window.location.href = 'login.html';
-    return; // หยุดการทำงานทันทีถ้ายังไม่ล็อกอิน
+    // ป้องกันการ redirect วน loop ในหน้า login
+    if (!window.location.pathname.endsWith('login.html')) {
+        window.location.href = 'login.html';
+    }
+    return;
   }
 
   // 1.2 แสดงข้อมูลผู้ดูแลใน Sidebar
-  document.getElementById('adminNameDisplay').textContent = localStorage.getItem('adminName') || '-';
-  document.getElementById('adminPhoneDisplay').textContent = localStorage.getItem('adminPhone') || '-';
-  document.getElementById('adminLineDisplay').textContent = localStorage.getItem('adminLine') || '-';
+  const adminNameDisplay = document.getElementById('adminNameDisplay');
+  if (adminNameDisplay) adminNameDisplay.textContent = localStorage.getItem('adminName') || '-';
+  const adminPhoneDisplay = document.getElementById('adminPhoneDisplay');
+  if (adminPhoneDisplay) adminPhoneDisplay.textContent = localStorage.getItem('adminPhone') || '-';
+  const adminLineDisplay = document.getElementById('adminLineDisplay');
+  if (adminLineDisplay) adminLineDisplay.textContent = localStorage.getItem('adminLine') || '-';
 
   // 1.3 ผูกปุ่ม Logout
   document.getElementById('logoutBtn')?.addEventListener('click', () => {
@@ -38,19 +44,19 @@ document.addEventListener('DOMContentLoaded', () => {
       // ถ้าเจอ <div id="roomsContainer"> ให้ทำงานแบบ "หน้าแสดงผลห้อง"
       if (document.getElementById('roomsContainer')) {
         console.log("Running in Room Display Mode");
-        startAppForRoomDisplay(db); // เรียกฟังก์ชันสำหรับแสดงห้องแบบ Real-time
+        startAppForRoomDisplay(db);
       }
       
       // ถ้าเจอ <tbody id="reportBody"> ให้ทำงานแบบ "หน้ารายงาน"
       else if (document.getElementById('reportBody')) {
         console.log("Running in Report Mode");
-        loadReportData(db); // เรียกฟังก์ชันสำหรับหน้ารายงาน
+        loadReportData(db);
       }
 
       // ถ้าเจอ <button id="saveRoom"> ให้ทำงานแบบ "หน้าเพิ่มห้อง"
       else if (document.getElementById('saveRoom')) {
         console.log("Running in Add Room Form Mode");
-        initializeAddRoomPage(db); // เรียกฟังก์ชันสำหรับเตรียมหน้าฟอร์ม
+        initializeAddRoomPage(db);
       }
       
     })
@@ -84,7 +90,7 @@ async function startAppForRoomDisplay(db) {
 
 function handleSnapshot(snapshot, container) {
   if (!snapshot || snapshot.empty) {
-    container.innerHTML = '<p>ยังไม่มีห้องในระบบ</p>';
+    container.innerHTML = '<p style="text-align: center; color: #888;">ยังไม่มีห้องในระบบ</p>';
     return;
   }
 
@@ -102,13 +108,15 @@ function handleSnapshot(snapshot, container) {
         <div class="small">หมดเวลา: ${escapeHtml(data.expire || '-')}</div>
       </div>
       <div class="room-actions">
-        <button class="btn-openCam" data-camera="${escapeHtml(data.cameraId || '')}">📷 เปิดกล้อง</button>
-        <button class="btn-delete" data-id="${doc.id}" data-name="${escapeHtml(data.room)}">🗑 ลบห้อง</button>
+        <button class="primary btn-openCam" data-camera="${escapeHtml(data.cameraId || '')}" data-doc-id="${doc.id}">📷 เปิดกล้อง</button>
+        <button class="danger btn-delete" data-id="${doc.id}" data-name="${escapeHtml(data.room)}">🗑 ลบห้อง</button>
       </div>
     `;
     fragment.appendChild(card);
   });
 
+  // ก่อนจะแสดงผลใหม่ เราควรหยุดสตรีมเก่าทั้งหมดก่อน
+  stopAllCardStreams();
   container.innerHTML = '';
   container.appendChild(fragment);
   attachRoomButtons();
@@ -122,7 +130,7 @@ function handleSnapshotError(error) {
 
 function attachRoomButtons() {
   document.querySelectorAll('.btn-openCam').forEach(btn => {
-    btn.onclick = () => handleOpenCamera(btn.dataset.camera);
+    btn.onclick = () => handleOpenCamera(btn.dataset.camera, btn.dataset.docId, btn);
   });
 
   document.querySelectorAll('.btn-delete').forEach(btn => {
@@ -171,7 +179,7 @@ async function loadReportData(db) {
 
 
 // ===================================================================
-//  ส่วนของ "หน้าเพิ่มห้อง" (room.html ที่มีฟอร์ม)
+//  ส่วนของ "หน้าเพิ่มห้อง" (room_form.html)
 // ===================================================================
 
 function initializeAddRoomPage(db) {
@@ -243,89 +251,83 @@ function showQR() {
 //  ฟังก์ชันที่ใช้ร่วมกัน (HELPER FUNCTIONS)
 // ===================================================================
 
-// --- ฟังก์ชันจัดการกล้อง ---
-let _modalStream = null;
+// --- ฟังก์ชันจัดการกล้อง (ฉบับแก้ไข: เปิด-ปิด ใน Card โดยตรง) ---
+let activeCardStreams = {};
 
-async function handleOpenCamera(cameraId) {
-  if (/^https?:\/\//i.test(cameraId)) {
-    window.open(cameraId, '_blank');
+async function handleOpenCamera(cameraId, docId, buttonEl) {
+  if (!docId) return console.error("Doc ID is missing.");
+
+  if (activeCardStreams[docId]) {
+    stopStreamForCard(docId, buttonEl);
     return;
   }
 
-  const html = `
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      <select id="swal-camera-select" style="padding:6px;"></select>
-      <video id="swal-video" autoplay playsinline controls style="width:100%;max-width:640px;background:#000;"></video>
-    </div>`;
+  const videoEl = document.getElementById(`video-${docId}`);
+  if (!videoEl) return console.error(`Video element for doc ID ${docId} not found.`);
+  
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    return Swal.fire('ไม่รองรับ', 'เบราว์เซอร์ของคุณไม่รองรับการเข้าถึงกล้อง หรือคุณกำลังใช้งานผ่าน HTTP ที่ไม่ปลอดภัย', 'error');
+  }
 
-  Swal.fire({
-    title: 'พรีวิวกล้อง',
-    html,
-    showConfirmButton: true,
-    confirmButtonText: 'ปิด',
-    width: 'auto',
-    didOpen: async () => {
-      const select = document.getElementById('swal-camera-select');
-      const video = document.getElementById('swal-video');
-      try {
-        const devices = await getVideoDevices();
-        if (!devices.length) {
-          select.innerHTML = '<option value="">(ไม่พบกล้อง)</option>'; return;
-        }
-        select.innerHTML = devices.map(d => `<option value="${d.deviceId}">${escapeHtml(d.label || `กล้อง ${d.deviceId}`)}</option>`).join('');
-        
-        // เลือกกล้องที่ตรงกับ cameraId ถ้ามี
-        if (cameraId && devices.some(d => d.deviceId === cameraId)) {
-          select.value = cameraId;
-        } else if (!cameraId) {
-            // ถ้าไม่มี cameraId ให้ซ่อน select box ไปเลย
-            select.style.display = 'none';
-        }
-        
-        await startStreamForDevice(video, select.value);
-        select.onchange = () => startStreamForDevice(video, select.value);
-
-      } catch (err) {
-        Swal.showValidationMessage('ไม่สามารถโหลดรายชื่อกล้อง: ' + err.message);
-      }
-    },
-    willClose: stopModalStream
-  });
-}
-
-async function startStreamForDevice(videoEl, deviceId) {
-  stopModalStream();
-  if (!deviceId) return;
   try {
-    const constraints = { video: { deviceId: { exact: deviceId } }, audio: false };
+    let deviceToUse = cameraId;
+    if (!deviceToUse) {
+      const devices = await getVideoDevices();
+      if (devices.length > 0) deviceToUse = devices[0].deviceId;
+      else throw new Error("ไม่พบอุปกรณ์กล้องในเครื่องของคุณ");
+    }
+
+    const constraints = { video: { deviceId: { exact: deviceToUse } }, audio: false };
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    
     videoEl.srcObject = stream;
-    await videoEl.play().catch(console.warn);
-    _modalStream = stream;
+    await videoEl.play();
+    activeCardStreams[docId] = stream;
+
+    if (buttonEl) {
+      buttonEl.innerHTML = "⏹️ ปิดกล้อง";
+      buttonEl.classList.replace('primary', 'warning');
+    }
   } catch (err) {
-    console.error("startStreamForDevice failed:", err);
-    Swal.showValidationMessage(`ไม่สามารถเปิดกล้อง: ${err.name}`);
+    console.error("Failed to open camera:", err);
+    let errorMsg = err.message;
+    if (err.name === 'NotAllowedError') errorMsg = 'คุณได้ปฏิเสธการเข้าถึงกล้อง กรุณาอนุญาตในตั้งค่าของเบราว์เซอร์';
+    else if (err.name === 'NotFoundError') errorMsg = 'ไม่พบกล้องที่ระบุ';
+    Swal.fire('เกิดข้อผิดพลาด', errorMsg, 'error');
   }
 }
 
-function stopModalStream() {
-  if (_modalStream) {
-    _modalStream.getTracks().forEach(t => t.stop());
-    _modalStream = null;
+function stopStreamForCard(docId, buttonEl) {
+  const stream = activeCardStreams[docId];
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    delete activeCardStreams[docId];
   }
+  
+  const videoEl = document.getElementById(`video-${docId}`);
+  if (videoEl) videoEl.srcObject = null;
+
+  if (buttonEl) {
+    buttonEl.innerHTML = "📷 เปิดกล้อง";
+    buttonEl.classList.replace('warning', 'primary');
+  }
+}
+
+function stopAllCardStreams() {
+    Object.keys(activeCardStreams).forEach(docId => stopStreamForCard(docId, null));
 }
 
 async function getVideoDevices() {
-  let devices = await navigator.mediaDevices.enumerateDevices();
-  if (!devices.some(d => d.kind === 'videoinput' && d.label)) {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      stream.getTracks().forEach(t => t.stop());
-      devices = await navigator.mediaDevices.enumerateDevices();
-    } catch (e) {
-      console.warn("Could not get camera permissions to fetch labels.");
-    }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+      throw new Error("ฟังก์ชัน enumerateDevices ไม่รองรับในเบราว์เซอร์นี้");
   }
+  try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      stream.getTracks().forEach(track => track.stop());
+  } catch (e) {
+      console.warn("Could not get camera permissions to fetch labels.");
+  }
+  const devices = await navigator.mediaDevices.enumerateDevices();
   return devices.filter(d => d.kind === 'videoinput');
 }
 
@@ -334,7 +336,7 @@ async function loadCameraOptions() {
   if (!selectEl) return;
   try {
     const devices = await getVideoDevices();
-    selectEl.innerHTML = '<option value="">-- ไม่ระบุกล้อง --</option>'; // Default option
+    selectEl.innerHTML = '<option value="">-- ไม่ระบุกล้อง --</option>';
     devices.forEach(device => {
       const opt = document.createElement("option");
       opt.value = device.deviceId;
@@ -345,7 +347,6 @@ async function loadCameraOptions() {
     console.error("ไม่สามารถโหลดรายชื่อกล้อง:", err);
   }
 }
-
 
 // --- ฟังก์ชันจัดการข้อมูล ---
 async function handleDeleteRoom(id, name) {
@@ -371,23 +372,23 @@ async function handleDeleteRoom(id, name) {
 
 // --- ฟังก์ชันแสดงผลและอื่นๆ ---
 function showError(text, container) {
-  if (container) container.innerHTML = `<p style="color:#800">${escapeHtml(text)}</p>`;
+  if (container) container.innerHTML = `<p style="color:#d33; text-align:center;">${escapeHtml(text)}</p>`;
 }
 
 function showErrorInTable(text) {
   const reportBody = document.getElementById('reportBody');
   if (reportBody) {
-    reportBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #800;">${escapeHtml(text)}</td></tr>`;
+    reportBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #d33;">${escapeHtml(text)}</td></tr>`;
   }
 }
 
 function escapeHtml(str) {
-  return String(str || '').replace(/[&<>"'`=\/]/g, s => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;', '`': '&#x60;', '=': '&#x3D;'
-  }[s]));
+  const p = document.createElement("p");
+  p.textContent = String(str || '');
+  return p.innerHTML;
 }
 
 window.addEventListener('beforeunload', () => {
   if (roomsUnsubscribe) roomsUnsubscribe();
-  stopModalStream();
+  stopAllCardStreams(); // ✅ แก้ไขให้หยุดสตรีมจาก Card
 });
